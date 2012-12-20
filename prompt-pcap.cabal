@@ -18,4 +18,15 @@ Source-repository head
 executable prompt-pcap
   main-is:           Main.hs
   ghc-options:       -Wall -O2 -rtsopts
-  build-depends:     base >=4.5, mtl >=2.1, pipes >=3.0, attoparsec >=0.10, bytestring >=0.9, containers >=0.5, time >=1.4, pcap >=0.4, optparse-applicative >=0.4, old-locale >=1.0, attoparsec-binary >=0.2
+  build-depends:     base                 >=  4.5, 
+                     mtl                  >=  2.1, 
+                     pipes                >=  3.0, 
+                     attoparsec           >= 0.10, 
+                     bytestring           >=  0.9, 
+                     containers           >=  0.5, 
+                     time                 >=  1.4, 
+                     pcap                 >=  0.4, 
+                     optparse-applicative >=  0.4, 
+                     old-locale           >=  1.0, 
+                     attoparsec-binary    >=  0.2
+
