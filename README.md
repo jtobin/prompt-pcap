@@ -1,6 +1,6 @@
 # prompt-pcap [![Build Status](https://secure.travis-ci.org/jtobin/prompt-pcap.png?branch=master)](http://travis-ci.org/jtobin/prompt-pcap) 
 
-A simple pcap parser for Unix systems.  Requires libpcap-dev, which can be installed by
+A simple pcap parser for Unix-like systems.  Requires libpcap-dev, which can be installed by
 
     sudo apt-get update && sudo apt-get install libpcap-dev
 
