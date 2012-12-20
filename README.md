@@ -4,9 +4,7 @@ A simple pcap parser.  Requires libpcap-dev, which can be installed by
 
     sudo apt-get update && sudo apt-get install libpcap-dev
 
-on Debian and Ubuntu.  It should be present on an OS X installation.
-
-Install prompt-pcap via:
+on Debian and Ubuntu.  It should already be present on an OS X installation.  Install prompt-pcap via:
 
     git clone git@github.com:jtobin/prompt-pcap.git
     cd prompt-pcap
