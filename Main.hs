@@ -40,18 +40,17 @@ main = execParser opts >>= entry
 -- Argument parsing ------------------------------------------------------------
 
 -- | Options consist of the target pcap dump file and the optional reorder flag.
-data Options = Options { dumpFile :: FilePath, reorder :: Bool }
+data Options = Options { reorder :: Bool, dumpFile :: FilePath }
 
 -- | An options parser.
 options :: Options.Parser Options
-options = Options <$> argument str (metavar "PCAPFILE" )
-                  <*> switch ( short 'r' 
+options = Options <$> switch ( short 'r' 
                              & long  "reorder" 
                              & help  "Reorder quotes by accept time." )
-
+                  <*> argument str (metavar "PCAPFILE" )
 -- | Enter into the main program.  
 entry :: Options -> IO ()
-entry (Options d r) = do
+entry (Options r d) = do
     let finalizer = if   r 
                     then bufferAndSort >+> printer 
                     else printOrTerminate
