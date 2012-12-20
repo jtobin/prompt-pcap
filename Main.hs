@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 -- Portability :  unknown
 
-{-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module Main where
 
@@ -35,7 +35,7 @@ main = execParser opts >>= entry
   where opts = info (helper <*> options)
           ( fullDesc
           & progDesc "Parse a pcap file according to spec."
-          & header   "Kospi quote parser"                   )
+          & header   "A Kospi Quote Parser"                 )
 
 -- Argument parsing ------------------------------------------------------------
 
@@ -61,7 +61,7 @@ entry (Options d r) = do
 -- IO pipeline -----------------------------------------------------------------
 
 -- | Yield the contents of a handle, terminating upon reaching an empty packet.
---   Note that this should also work for live captures.
+--   Note that this should also work for live captures, though that's untested.
 yieldPackets :: PcapHandle -> Producer (PktHdr, ByteString) IO b
 yieldPackets handle = forever $ lift (nextBS handle) >>= yield
 
@@ -77,8 +77,8 @@ extractQuotes = forever $ do
         Partial _ -> error $    "failed to filter quote packets (pcap stream " 
                              ++ "has likely ended or been corrupted)"
 
--- | Await quotes and hold them in a buffer.  If upstream yields a Nothing,
---   pass control to a terminating pipe.
+-- | Await quotes and hold them in a 3-second buffer.  If upstream yields a 
+--   Nothing, pass control to a terminating pipe.
 bufferAndSort :: Pipe (Maybe Quote) Quote IO ()
 bufferAndSort = go Map.empty where
     go buffer = await >>= \maybeQ -> 
@@ -87,7 +87,7 @@ bufferAndSort = go Map.empty where
       else let q = fromJust maybeQ
                buffer0 = Map.insert (hashTimes q) q buffer
                (minq, buffer1) = bufferMin buffer0
-               (maxq, _       ) = bufferMax buffer0
+               (maxq, _)       = bufferMax buffer0
            in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3 
               then yield minq >> go buffer1 
               else               go buffer0

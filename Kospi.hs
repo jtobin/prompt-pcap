@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 -- Portability :  unknown
 
-{-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module Kospi 
   ( Quote(..)

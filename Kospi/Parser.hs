@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 -- Portability :  unknown
 
-{-# OPTIONS_GHC -Wall -Werror -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Kospi.Parser
@@ -85,7 +85,7 @@ nInts n = asInt <$> A.take n
              ++ "corrupted)"
 
 -- | Consume a 'raw' time having format HHMMSSuu.  Note that 'uu' here
---   represents centiseconds.
+--   does not represent microseconds.
 rawTime :: Parser TimeOfDay
 rawTime = do [hh, mm, ss, uu] <- replicateM 4 (nInts 2)
              return $ TimeOfDay hh mm (fromIntegral ss + fromIntegral uu / 100)

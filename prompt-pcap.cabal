@@ -6,10 +6,16 @@ license:             BSD3
 license-file:        LICENSE
 author:              Jared Tobin
 maintainer:          jared@jtobin.ca
+category:            Network
 build-type:          Simple
 cabal-version:       >=1.8
+description:         Parse quote packets from a pcap handle.
+
+Source-repository head
+  Type:     git
+  Location: http://github.com/jtobin/prompt-pcap.git
 
 executable prompt-pcap
   main-is:           Main.hs
-  ghc-options:       -Wall -Werror -O2 -rtsopts
+  ghc-options:       -Wall -O2 -rtsopts
   build-depends:     base >=4.5, mtl >=2.1, pipes >=3.0, attoparsec >=0.10, bytestring >=0.9, containers >=0.5, time >=1.4, pcap >=0.4, optparse-applicative >=0.4, old-locale >=1.0, attoparsec-binary >=0.2

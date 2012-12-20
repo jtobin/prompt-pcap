@@ -7,7 +7,7 @@
 -- Stability   :  experimental
 -- Portability :  unknown
 
-{-# OPTIONS_GHC -Wall -Werror #-}
+{-# OPTIONS_GHC -Wall #-}
 
 module Kospi.Data 
     ( -- * Data types
@@ -34,9 +34,9 @@ data Quote = Quote { pktTime    :: {-# UNPACK #-} !UTCTime
                    , ask2       :: {-# UNPACK #-} !PQ
                    , ask3       :: {-# UNPACK #-} !PQ
                    , ask4       :: {-# UNPACK #-} !PQ
-                   , ask5       :: {-# UNPACK #-} !PQ       } deriving Eq
+                   , ask5       :: {-# UNPACK #-} !PQ         } deriving Eq
 
--- | Only consider timestamps when ranking Quotes.
+-- | Rank Quotes by accept time at the exchange.
 instance Ord Quote where 
     q0 `compare` q1 = let byTime = compare `on` acceptTime 
                       in  q0 `byTime` q1
