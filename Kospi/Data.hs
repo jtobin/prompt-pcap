@@ -15,6 +15,8 @@ module Kospi.Data
     , PQ(..)
     ) where
 
+import Data.ByteString                 as B hiding (take)
+import qualified Data.ByteString.Char8 as B8
 import Data.Function (on)
 import Data.Time
 import System.Locale
@@ -22,7 +24,7 @@ import System.Locale
 -- | A Quote containing only the information we're interested in.
 data Quote = Quote { pktTime    :: {-# UNPACK #-} !UTCTime
                    , acceptTime :: {-# UNPACK #-} !UTCTime
-                   , issueCode  :: String
+                   , issueCode  :: {-# UNPACK #-} !ByteString
                    , bid5       :: {-# UNPACK #-} !PQ 
                    , bid4       :: {-# UNPACK #-} !PQ 
                    , bid3       :: {-# UNPACK #-} !PQ 
@@ -43,7 +45,7 @@ instance Ord Quote where
 instance Show Quote where
     show q =           showTimeToPrecision 4 (pktTime q)
              ++ " " ++ showTimeToPrecision 2 (acceptTime q)
-             ++ " " ++ issueCode q
+             ++ " " ++ B8.unpack (issueCode q)
              ++ " " ++ show (bid5 q)
              ++ " " ++ show (bid4 q)
              ++ " " ++ show (bid3 q)
@@ -61,7 +63,7 @@ data PQ = PQ {-# UNPACK #-} !Int {-# UNPACK #-} !Int deriving Eq
 -- | Show price/quantity information according to spec.
 instance Show PQ where show (PQ a b) = show b ++ "@" ++ show a 
 
--- | Pretty-print timestamps according to a custom spec.
+-- | Pretty-print timestamps according to a custom spec.  
 showTimeToPrecision :: FormatTime t => Int -> t -> String
 showTimeToPrecision n t =    formatTime defaultTimeLocale "%F %H:%M:%S" t 
                           ++ "." ++ ms ++ " " ++ tz

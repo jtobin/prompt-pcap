@@ -41,7 +41,7 @@ quote ptime = ethernetFrame *> ipHeader *> udpHeader *> quotePayload ptime
 quotePayload :: UTCTime -> Parser Quote
 quotePayload ptime = do 
     string "B6034"
-    icode                <- liftM B8.unpack isinCode
+    icode                <- isinCode
     throwAway 12
     [b1, b2, b3, b4, b5] <- replicateM 5 quotePQ
     throwAway 7

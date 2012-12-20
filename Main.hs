@@ -87,7 +87,7 @@ bufferAndSort = go Map.empty where
       else let q = fromJust maybeQ
                buffer0 = Map.insert (hashTimes q) q buffer
                (minq, buffer1) = bufferMin buffer0
-               (maxq, _      ) = bufferMax buffer0
+               (maxq, _       ) = bufferMax buffer0
            in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3 
               then yield minq >> go buffer1 
               else               go buffer0
