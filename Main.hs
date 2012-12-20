@@ -78,7 +78,8 @@ extractQuotes = forever $ do
                              ++ "has likely ended or been corrupted)"
 
 -- | Await quotes and hold them in a 3-second buffer.  If upstream yields a 
---   Nothing, pass control to a terminating pipe.
+--   Nothing, pass control to a terminating pipe.  The utcToInt helper 
+--   must have type Integer to avoid overflow on 32-bit systems.
 bufferAndSort :: Pipe (Maybe Quote) Quote IO ()
 bufferAndSort = go Map.empty where
     go buffer = await >>= \maybeQ -> 
@@ -93,7 +94,7 @@ bufferAndSort = go Map.empty where
               else               go buffer0
     hashTimes q = show (utcToInt (acceptTime q))
                ++ show (utcToInt (pktTime q))
-    utcToInt t  = truncate $ utcTimeToPOSIXSeconds t * 10^(6 :: Int) :: Int
+    utcToInt t  = truncate $ utcTimeToPOSIXSeconds t * 10^(6 :: Int) :: Integer
 
 -- | Flush the Quote buffer and exit gracefully when it's empty.
 flushAndTerminate :: Map k b -> Pipe a b IO r
