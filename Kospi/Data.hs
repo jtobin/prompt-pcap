@@ -22,7 +22,7 @@ import System.Locale
 -- | A Quote containing only the information we're interested in.
 data Quote = Quote { pktTime    :: {-# UNPACK #-} !UTCTime
                    , acceptTime :: {-# UNPACK #-} !UTCTime
-                   , issueCode  :: {-# UNPACK #-} !String
+                   , issueCode  :: String
                    , bid5       :: {-# UNPACK #-} !PQ 
                    , bid4       :: {-# UNPACK #-} !PQ 
                    , bid3       :: {-# UNPACK #-} !PQ 
