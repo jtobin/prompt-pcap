@@ -85,7 +85,7 @@ bufferAndSort = go Map.empty where
     go buffer = await >>= \maybeQ -> 
       if   isNothing maybeQ
       then flushAndTerminate buffer
-      else let q = fromJust maybeQ
+      else let q = fromMaybe (error buffError) maybeQ
                buffer0 = Map.insert (hashTimes q) q buffer
                (minq, buffer1) = bufferMin buffer0
                (maxq, _)       = bufferMax buffer0
@@ -113,7 +113,7 @@ printOrTerminate :: Show a => Consumer (Maybe a) IO b
 printOrTerminate = forever $ do
     x <- await 
     when (isNothing x) (lift exitSuccess)
-    (lift . print) (fromJust x)
+    (lift . print) (fromMaybe (error "pipeline expected a 'Just' wrapper") x)
 
 -- Utilities -------------------------------------------------------------------
 
