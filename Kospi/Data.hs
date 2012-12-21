@@ -17,9 +17,9 @@ module Kospi.Data
 
 import Data.ByteString                 as B hiding (take)
 import qualified Data.ByteString.Char8 as B8
-import Data.Function (on)
+import Data.Function        (on)
 import Data.Time
-import System.Locale
+import System.Locale        (defaultTimeLocale)
 
 -- | A Quote containing only the information we're interested in.
 data Quote = Quote { pktTime    :: {-# UNPACK #-} !UTCTime

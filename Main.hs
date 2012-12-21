@@ -12,20 +12,20 @@
 module Main where
 
 import Kospi
-import Control.Monad
-import Control.Monad.Trans
+import Control.Monad       (forever, when)
+import Control.Monad.Trans (lift)
 import Control.Pipe
-import Data.Attoparsec.ByteString    as A       hiding (take)
-import Data.ByteString               as B       hiding (take)
-import Data.Maybe
-import Data.Map.Strict    (Map)
-import qualified Data.Map.Strict     as Map
+import Data.Attoparsec.ByteString as A hiding (take)
+import Data.ByteString     (ByteString)  
+import Data.Maybe          (isNothing, fromMaybe)
+import Data.Map.Strict     (Map)
+import qualified Data.Map.Strict as Map
 import Data.Time
 import Data.Time.Clock.POSIX
-import Network.Pcap
-import Options.Applicative                      hiding (Parser) 
+import Network.Pcap 
+import Options.Applicative hiding (Parser) 
 import qualified Options.Applicative as Options
-import System.Exit
+import System.Exit         (exitSuccess)
 
 default (ByteString, Int)
 
