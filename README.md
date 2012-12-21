@@ -8,7 +8,7 @@ on Debian and Ubuntu.  It should already be present on an OS X installation.  In
 
     git clone git@github.com:jtobin/prompt-pcap.git
     cd prompt-pcap
-    cabal install
+    cabal install --only-dependencies
  
 Take note of where the executable `prompt-pcap` will be installed, and add this to your PATH if necessary. 
 
