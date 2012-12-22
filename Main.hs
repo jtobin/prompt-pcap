@@ -64,35 +64,29 @@ entry (Options r d) = do
 yieldPackets :: PcapHandle -> Producer (PktHdr, ByteString) IO b
 yieldPackets handle = forever $ lift (nextBS handle) >>= yield
 
--- | Yield only quote packets, according to spec.  
+-- | Yield only quote packets, according to spec. 
 extractQuotes :: Monad m => Pipe (PktHdr, ByteString) (Maybe Quote) m b
 extractQuotes = forever $ do
     (hdr, payload) <- await
     when (hdrCaptureLength hdr == 0) $ yield Nothing
-    let hdrUTCTime = posixSecondsToUTCTime . realToFrac . hdrDiffTime $ hdr
-    case A.parse (quote hdrUTCTime) payload of 
+    case A.parse (quote (hdrUTCTime hdr)) payload of
         Fail {}   -> return ()
         Done _ r  -> yield  (Just r)
-        Partial _ -> error $    "failed to filter quote packets (pcap stream " 
+        Partial _ -> error $    "failed to filter quote packets (pcap stream "
                              ++ "has likely ended or been corrupted)"
 
--- | Await quotes and hold them in a 3-second buffer.  If upstream yields a 
---   Nothing, pass control to a terminating pipe.  The utcToInt helper 
---   must have type Integer to avoid overflow on 32-bit systems.
+-- | Await quotes and hold them in a 3-second buffer.  If upstream yields a
+--   Nothing, pass control to a terminating pipe.
 bufferAndSort :: Pipe (Maybe Quote) Quote IO ()
 bufferAndSort = go Map.empty where
-    go buffer = await >>= \maybeQ -> 
-      case maybeQ of
-        Nothing -> flushAndTerminate buffer
-        Just q  -> let buffer0 = Map.insert (hashTimes q) q buffer
-                       (minq, buffer1) = bufferMin buffer0
-                       (maxq, _)       = bufferMax buffer0
-                   in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3
-                      then yield minq >> go buffer1 
-                      else               go buffer0
-    hashTimes q = show (utcToInt (acceptTime q))
-               ++ show (utcToInt (pktTime q))
-    utcToInt t  = truncate $ utcTimeToPOSIXSeconds t * 10^(6 :: Int) :: Integer
+    go buffer = await >>= \maybeQ -> case maybeQ of
+      Nothing -> flushAndTerminate buffer
+      Just q  -> let buffer0 = Map.insert (hashTimes q) q buffer
+                     (minq, buffer1) = bufferMin buffer0
+                     (maxq, _)       = bufferMax buffer0
+                 in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3
+                    then yield minq >> go buffer1
+                    else               go buffer0
 
 -- | Flush the Quote buffer and exit gracefully when it's empty.
 flushAndTerminate :: Map k b -> Pipe a b IO r
@@ -128,3 +122,17 @@ buffError :: String
 buffError =    "failed to buffer quote packets (pcap stream has likely been "
             ++ "corrupted)"
                                     
+-- | Convert a packet header's timestamp to UTC.
+hdrUTCTime :: PktHdr -> UTCTime
+hdrUTCTime = posixSecondsToUTCTime . realToFrac . hdrDiffTime 
+
+-- | Create a unique key for packet/accept times. 
+hashTimes :: Quote -> String
+hashTimes q = show (utcToInteger (acceptTime q)) 
+           ++ show (utcToInteger (pktTime q))
+
+-- | Convert a UTC time to Integer (required to avoid overflow on 32-bit 
+--   systems).
+utcToInteger :: UTCTime -> Integer
+utcToInteger t = truncate $ utcTimeToPOSIXSeconds t * 10^(6 :: Int) 
+
