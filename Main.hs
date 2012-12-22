@@ -34,8 +34,8 @@ main :: IO ()
 main = execParser opts >>= entry
   where opts = info (helper <*> options)
           ( fullDesc
-          & progDesc "Parse a pcap file according to spec."
-          & header   "A Kospi Quote Parser"                 )
+          <> progDesc "Parse a pcap file according to spec."
+          <> header   "A Kospi Quote Parser"                 )
 
 -- Argument parsing ------------------------------------------------------------
 
@@ -45,8 +45,8 @@ data Options = Options { reorder :: Bool, dumpFile :: FilePath }
 -- | An options parser.
 options :: Options.Parser Options
 options = Options <$> switch ( short 'r' 
-                             & long  "reorder" 
-                             & help  "Reorder quotes by accept time." )
+                             <> long  "reorder" 
+                             <> help  "Reorder quotes by accept time." )
                   <*> argument str (metavar "PCAPFILE" )
 -- | Enter into the main program.  
 entry :: Options -> IO ()
