@@ -82,15 +82,14 @@ extractQuotes = forever $ do
 bufferAndSort :: Pipe (Maybe Quote) Quote IO ()
 bufferAndSort = go Map.empty where
     go buffer = await >>= \maybeQ -> 
-      if   isNothing maybeQ
-      then flushAndTerminate buffer
-      else let q = fromMaybe (error buffError) maybeQ
-               buffer0 = Map.insert (hashTimes q) q buffer
-               (minq, buffer1) = bufferMin buffer0
-               (maxq, _)       = bufferMax buffer0
-           in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3 
-              then yield minq >> go buffer1 
-              else               go buffer0
+      case maybeQ of
+        Nothing -> flushAndTerminate buffer
+        Just q  -> let buffer0 = Map.insert (hashTimes q) q buffer
+                       (minq, buffer1) = bufferMin buffer0
+                       (maxq, _)       = bufferMax buffer0
+                   in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3
+                      then yield minq >> go buffer1 
+                      else               go buffer0
     hashTimes q = show (utcToInt (acceptTime q))
                ++ show (utcToInt (pktTime q))
     utcToInt t  = truncate $ utcTimeToPOSIXSeconds t * 10^(6 :: Int) :: Integer
