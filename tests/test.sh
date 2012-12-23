@@ -1,5 +1,5 @@
 #!/bin/bash
-# unit tests for prompt-pcap 
+# unit tests for prompt-pcap
 
 # do both options return the same number of quotes?
 vanillaLines=$(./dist/build/prompt-pcap/prompt-pcap ./data/mdf-kospi200.20110216-0.pcap | wc -l)
