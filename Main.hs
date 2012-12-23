@@ -53,7 +53,7 @@ entry :: Options -> IO ()
 entry (Options r d) = do
     let finalizer = if   r 
                     then bufferAndSort >+> printer 
-                    else printOrTerminate
+                    else printer
     d0 <- openOffline d 
     runPipe $ yieldPackets d0 >+> extractQuotes >+> finalizer
 
@@ -77,7 +77,7 @@ extractQuotes = forever $ do
 
 -- | Await quotes and hold them in a 3-second buffer.  If upstream yields a
 --   Nothing, pass control to a terminating pipe.
-bufferAndSort :: Pipe (Maybe Quote) Quote IO ()
+bufferAndSort :: Pipe (Maybe Quote) (Maybe Quote) IO ()
 bufferAndSort = go Map.empty where
     go buffer = await >>= \maybeQ -> case maybeQ of
       Nothing -> flushAndTerminate buffer
@@ -85,24 +85,19 @@ bufferAndSort = go Map.empty where
                      (minq, buffer1) = bufferMin buffer0
                      (maxq, _)       = bufferMax buffer0
                  in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3
-                    then yield minq >> go buffer1
-                    else               go buffer0
+                    then yield (Just minq) >> go buffer1
+                    else                      go buffer0
 
 -- | Flush the Quote buffer and exit gracefully when it's empty.
-flushAndTerminate :: Map k b -> Pipe a b IO r
+flushAndTerminate :: Map k a -> Pipe c (Maybe a) IO b
 flushAndTerminate b 
     | Map.null b = lift exitSuccess 
-    | otherwise  = (\(m, r) -> yield m >> flushAndTerminate r) (bufferMin b)
+    | otherwise  = (\(m, r) -> yield (Just m) >> flushAndTerminate r) (bufferMin b)
 
--- | Print anything received to stdout.  Used to print Quotes that have been
---   unwrapped from 'Just's upstream.
-printer :: Show a => Consumer a IO b
-printer = forever $ await >>= lift . print
-
--- | Unwrap Just Quotes and print them to stdout.  If a Nothing is received,
+-- | Await Just Quotes and print them to stdout.  If a Nothing is received,
 --   exit the program gracefully.
-printOrTerminate :: Show a => Consumer (Maybe a) IO b
-printOrTerminate = forever $ do
+printer :: Show a => Consumer (Maybe a) IO b
+printer = forever $ do
     x <- await 
     when (isNothing x) (lift exitSuccess)
     (lift . print) (fromMaybe (error "pipeline expected a 'Just' wrapper") x)
