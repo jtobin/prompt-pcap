@@ -92,7 +92,8 @@ bufferAndSort = go Map.empty where
 flushAndTerminate :: Map k a -> Pipe c (Maybe a) IO b
 flushAndTerminate b 
     | Map.null b = lift exitSuccess 
-    | otherwise  = (\(m, r) -> yield (Just m) >> flushAndTerminate r) (bufferMin b)
+    | otherwise  = (\(m, r) -> yield (Just m) >> flushAndTerminate r) 
+                       (bufferMin b)
 
 -- | Await Just Quotes and print them to stdout.  If a Nothing is received,
 --   exit the program gracefully.
