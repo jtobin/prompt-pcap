@@ -44,18 +44,18 @@ data Options = Options { reorder :: Bool, dumpFile :: FilePath }
 
 -- | An options parser.
 options :: Options.Parser Options
-options = Options <$> switch ( short 'r' 
+options = Options <$> switch (  short 'r' 
                              <> long  "reorder" 
                              <> help  "Reorder quotes by accept time." )
-                  <*> argument str (metavar "PCAPFILE" )
+                  <*> argument str (metavar "PCAPFILE")
+
 -- | Enter into the main program.  
 entry :: Options -> IO ()
 entry (Options r d) = do
-    let finalizer = if   r 
-                    then bufferAndSort >+> printer 
-                    else printer
     d0 <- openOffline d 
-    runPipe $ yieldPackets d0 >+> extractQuotes >+> finalizer
+    runPipe $     yieldPackets d0 
+              >+> extractQuotes 
+              >+> if r then bufferAndSort >+> printer else printer
 
 -- IO pipeline -----------------------------------------------------------------
 
@@ -83,7 +83,7 @@ bufferAndSort = go Map.empty where
       Nothing -> flushAndTerminate buffer
       Just q  -> let buffer0 = Map.insert (hashTimes q) q buffer
                      (minq, buffer1) = bufferMin buffer0
-                     (maxq, _)       = bufferMax buffer0
+                     (maxq, _      ) = bufferMax buffer0
                  in if   abs (pktTime maxq `diffUTCTime` acceptTime minq) > 3
                     then yield (Just minq) >> go buffer1
                     else                      go buffer0
@@ -95,7 +95,7 @@ flushAndTerminate b
     | otherwise  = (\(m, r) -> yield (Just m) >> flushAndTerminate r) 
                        (bufferMin b)
 
--- | Await Just Quotes and print them to stdout.  If a Nothing is received,
+-- | Await Maybe values and print them to stdout.  If a Nothing is received,
 --   exit the program gracefully.
 printer :: Show a => Consumer (Maybe a) IO b
 printer = forever $ do
