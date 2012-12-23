@@ -49,13 +49,13 @@ options = Options <$> switch (  short 'r'
                              <> help  "Reorder quotes by accept time." )
                   <*> argument str (metavar "PCAPFILE")
 
--- | Enter into the main program.  
+-- | Enter the program's IO pipeline.
 entry :: Options -> IO ()
 entry (Options r d) = do
     d0 <- openOffline d 
     runPipe $     yieldPackets d0 
               >+> extractQuotes 
-              >+> if r then bufferAndSort >+> printer else printer
+              >+> if r then sortingBuffer >+> printer else printer
 
 -- IO pipeline -----------------------------------------------------------------
 
@@ -76,11 +76,11 @@ extractQuotes = forever $ do
                              ++ "has likely ended or been corrupted)"
 
 -- | Await quotes and hold them in a 3-second buffer.  If upstream yields a
---   Nothing, pass control to a terminating pipe.
-bufferAndSort :: Pipe (Maybe Quote) (Maybe Quote) IO ()
-bufferAndSort = go Map.empty where
+--   Nothing, flush the buffer and exit gracefully.
+sortingBuffer :: Pipe (Maybe Quote) (Maybe Quote) IO ()
+sortingBuffer = go Map.empty where
     go buffer = await >>= \maybeQ -> case maybeQ of
-      Nothing -> flushAndTerminate buffer
+      Nothing -> flush buffer
       Just q  -> let buffer0 = Map.insert (hashTimes q) q buffer
                      (minq, buffer1) = bufferMin buffer0
                      (maxq, _      ) = bufferMax buffer0
@@ -88,15 +88,13 @@ bufferAndSort = go Map.empty where
                     then yield (Just minq) >> go buffer1
                     else                      go buffer0
 
--- | Flush the Quote buffer and exit gracefully when it's empty.
-flushAndTerminate :: Map k a -> Pipe c (Maybe a) IO b
-flushAndTerminate b 
-    | Map.null b = lift exitSuccess 
-    | otherwise  = (\(m, r) -> yield (Just m) >> flushAndTerminate r) 
-                       (bufferMin b)
+-- | Flush a buffer and exit gracefully when it's empty.
+flush :: Map k a -> Pipe c (Maybe a) IO b
+flush b | Map.null b = lift exitSuccess 
+        | otherwise  = (\(m, r) -> yield (Just m) >> flush r) (bufferMin b)
 
--- | Await Maybe values and print them to stdout.  If a Nothing is received,
---   exit the program gracefully.
+-- | Await Maybes and print Justs to stdout.  If a Nothing is received, exit the
+--   program gracefully.
 printer :: Show a => Consumer (Maybe a) IO b
 printer = forever $ do
     x <- await 
@@ -117,7 +115,7 @@ bufferMax b = fromMaybe (error buffError) (Map.maxView b)
 buffError :: String
 buffError =    "failed to buffer quote packets (pcap stream has likely been "
             ++ "corrupted)"
-                                    
+ 
 -- | Convert a packet header's timestamp to UTC.
 hdrUTCTime :: PktHdr -> UTCTime
 hdrUTCTime = posixSecondsToUTCTime . realToFrac . hdrDiffTime 
