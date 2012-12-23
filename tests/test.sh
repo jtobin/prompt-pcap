@@ -10,5 +10,5 @@ $(./dist/build/prompt-pcap/prompt-pcap ./data/mdf-kospi200.20110216-0.pcap -r | 
 ordered=$?
 
 # summary
-[[ ($vanillaLines = $reorderLines) && ordered ]] && echo "All tests passed."
+[[ ($vanillaLines = $reorderLines) && $ordered ]] && echo "All tests passed."
 
