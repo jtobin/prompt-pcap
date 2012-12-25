@@ -88,9 +88,9 @@ sortingBuffer = go Map.empty where
                     then yield (Just minq) >> go buffer1
                     else                      go buffer0
 
--- | Flush a buffer and exit gracefully when it's empty.
-flush :: Map k a -> Pipe c (Maybe a) IO b
-flush b | Map.null b = lift exitSuccess 
+-- | Flush a buffer.
+flush :: Monad m => Map k a -> Pipe b (Maybe a) m ()
+flush b | Map.null b = yield Nothing 
         | otherwise  = (\(m, r) -> yield (Just m) >> flush r) (bufferMin b)
 
 -- | Await Maybes and print Justs to stdout.  If a Nothing is received, exit the
