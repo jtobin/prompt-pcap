@@ -17,7 +17,7 @@ import Control.Monad.Trans (lift)
 import Control.Pipe
 import Data.Attoparsec.ByteString as A hiding (take)
 import Data.ByteString     (ByteString)  
-import Data.Maybe          (isNothing, fromMaybe)
+import Data.Maybe          (fromMaybe)
 import Data.Map.Strict     (Map)
 import qualified Data.Map.Strict as Map
 import Data.Time
@@ -96,10 +96,9 @@ flush b | Map.null b = yield Nothing
 -- | Await Maybes and print Justs to stdout.  If a Nothing is received, exit the
 --   program gracefully.
 printer :: Show a => Consumer (Maybe a) IO b
-printer = forever $ do
-    x <- await 
-    when (isNothing x) (lift exitSuccess)
-    (lift . print) (fromMaybe (error "pipeline expected a 'Just' wrapper") x)
+printer = forever $ await >>= \x -> case x of 
+      Nothing -> lift exitSuccess
+      Just q  -> (lift . print) q
 
 -- Utilities -------------------------------------------------------------------
 
